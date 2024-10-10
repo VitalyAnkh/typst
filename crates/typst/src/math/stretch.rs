@@ -2,10 +2,11 @@ use ttf_parser::math::{GlyphAssembly, GlyphConstruction, GlyphPart};
 use ttf_parser::LazyArray16;
 
 use crate::diag::SourceResult;
-use crate::foundations::{elem, Content, Packed, Resolve, Smart, StyleChain};
+use crate::foundations::{elem, Content, Packed, Smart, StyleChain};
 use crate::layout::{Abs, Axis, Frame, Length, Point, Rel, Size, VAlignment};
 use crate::math::{
-    GlyphFragment, LayoutMath, MathContext, MathFragment, Scaled, VariantFragment,
+    scaled_font_size, GlyphFragment, LayoutMath, MathContext, MathFragment, Scaled,
+    VariantFragment,
 };
 use crate::utils::Get;
 
@@ -33,7 +34,8 @@ pub struct StretchElem {
     #[required]
     pub body: Content,
 
-    /// The size to stretch to, relative to the glyph's current size.
+    /// The size to stretch to, relative to the maximum size of the glyph and
+    /// its attachments.
     pub size: Smart<Rel<Length>>,
 }
 
@@ -90,7 +92,7 @@ pub(super) fn stretch_fragment(
         glyph,
         stretch
             .unwrap_or(Rel::one())
-            .resolve(styles)
+            .at(scaled_font_size(ctx, styles))
             .relative_to(relative_to_size),
         short_fall,
         axis,
